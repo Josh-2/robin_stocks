@@ -108,14 +108,16 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
     # If authentication has been stored in pickle file then load it. Stops login server from being pinged so much.
     if os.path.isfile(pickle_path):
         # If store_session has been set to false then delete the pickle file, otherwise try to load it.
-        # Loading pickle file will fail if the acess_token has expired.
+        # Loading pickle file will fail if the access_token has expired.
         if store_session:
             try:
                 with open(pickle_path, 'rb') as f:
                     pickle_data = pickle.load(f)
+                    pickle_username = pickle_data['username']
                     access_token = pickle_data['access_token']
                     token_type = pickle_data['token_type']
                     refresh_token = pickle_data['refresh_token']
+                    assert pickle_username.lower() == username.lower()
                     # Set device_token to be the original device token when first logged in.
                     pickle_device_token = pickle_data['device_token']
                     payload['device_token'] = pickle_device_token
@@ -131,11 +133,14 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
                     return({'access_token': access_token, 'token_type': token_type,
                             'expires_in': expiresIn, 'scope': scope, 'detail': 'logged in using authentication in {0}'.format(creds_file),
                             'backup_code': None, 'refresh_token': refresh_token})
+            except AssertionError:
+                print(
+                    "ERROR: There was an issue loading pickle file. Pickle file contains a different username - logging in normally.", file=helper.get_output())
             except:
                 print(
                     "ERROR: There was an issue loading pickle file. Authentication may be expired - logging in normally.", file=helper.get_output())
-                helper.set_login_state(False)
-                helper.update_session('Authorization', None)
+            helper.set_login_state(False)
+            helper.update_session('Authorization', None)
         else:
             os.remove(pickle_path)
 
@@ -183,6 +188,7 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
                     pickle.dump({'token_type': data['token_type'],
                                  'access_token': data['access_token'],
                                  'refresh_token': data['refresh_token'],
+                                 'username': username.lower(),
                                  'device_token': device_token}, f)
         else:
             raise Exception(data['detail'])
