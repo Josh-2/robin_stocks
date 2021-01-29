@@ -346,25 +346,25 @@ def request_post(url, payload=None, timeout=16, json=False, jsonify_data=True):
     :returns: Returns the data from the post request.
 
     """
-    data = None
+    # data = None
     res = None
-    try:
-        if json:
-            update_session('Content-Type', 'application/json')
-            res = SESSION.post(url, json=payload, timeout=timeout)
-            update_session(
-                'Content-Type', 'application/x-www-form-urlencoded; charset=utf-8')
-        else:
-            res = SESSION.post(url, data=payload, timeout=timeout)
-        data = res.json()
-    except Exception as message:
-        print("Error in request_post: {0}".format(message), file=get_output())
-    # Either return response <200,401,etc.> or the data that is returned from requests.
-    if jsonify_data:
-        return(data)
+    # try:
+    if json:
+        update_session('Content-Type', 'application/json')
+        res = SESSION.post(url, json=payload, timeout=timeout)
+        update_session(
+            'Content-Type', 'application/x-www-form-urlencoded; charset=utf-8')
     else:
-        return(res)
-
+        res = SESSION.post(url, data=payload, timeout=timeout)
+    #     data = res.json()
+    # except Exception as message:
+    #     print("Error in request_post: {0}".format(message), file=get_output())
+    # # Either return response <200,401,etc.> or the data that is returned from requests.
+    # if jsonify_data:
+    #     return(data)
+    # else:
+    #     return(res)
+    return res
 
 def request_delete(url):
     """For a given url and payload, makes a delete request and returns the response.
